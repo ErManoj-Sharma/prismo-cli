@@ -1,6 +1,11 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/prisma/prisma/main/.github/assets/prisma-logo.svg" width="120" />
-</p>
+<pre align="center">
+ _/_/_/    _/_/_/    _/_/_/    _/_/_/  _/      _/    _/_/    
+_/    _/  _/    _/    _/    _/        _/_/  _/_/  _/    _/   
+_/_/_/    _/_/_/      _/      _/_/    _/  _/  _/  _/    _/    
+_/        _/    _/    _/          _/  _/      _/  _/    _/     
+_/        _/    _/  _/_/_/  _/_/_/    _/      _/    _/_/        
+</pre>
+
 
 <h1 align="center">Prismo CLI 🚀</h1>
 
@@ -15,6 +20,9 @@ Generate models, fields, migrations just like Rails — but for Prisma 🎯
 </a>
 <a href="https://www.npmjs.com/package/prismo-cli">
 <img src="https://img.shields.io/npm/dw/prismo-cli?color=green&label=Downloads">
+</a>
+<a href="https://github.com/ErManoj-Sharma/prismo-cli">
+<img src="https://img.shields.io/badge/GitHub-Repository-black?logo=github">
 </a>
 <img src="https://img.shields.io/badge/Prisma-ORM-blue">
 <img src="https://img.shields.io/badge/license-MIT-purple">
