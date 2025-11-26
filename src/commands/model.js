@@ -1,23 +1,28 @@
 const { addModelToPrisma } = require("../utils/prismaUtil");
 const { execSync } = require("child_process");
+const log = require("../utils/logger");
 
 function generateModel(name, fields) {
-  // Add model to schema
-  addModelToPrisma(name, fields);
+  log.title("Creating Model");
 
-  // Format schema (optional but recommended)
+  const didCreate = addModelToPrisma(name, fields);
+
+  if (!didCreate) {
+    log.warn(`Model "${name}" was not created.`);
+    return;
+  }
+
   try {
     execSync("npx prisma format", { stdio: "ignore" });
-    console.log("✨ Schema formatted");
+    log.success("Schema formatted");
   } catch {
-    console.log("⚠️ Prisma format skipped (maybe not installed?)");
+    log.warn("Prisma format skipped (maybe not installed?)");
   }
 
   const migrationName = `add_${name.toLowerCase()}`;
 
-  console.log(`\n📌 Model "${name}" created successfully!`);
-  console.log(`Next Step 👉 Run migration:`);
-  console.log(`  prismo db:migrate "${migrationName}"\n`);
+  log.success(`Model "${name}" created successfully!`);
+  log.step(`Run migration: prismo db:migrate "${migrationName}"`);
 }
 
 module.exports = { generateModel };

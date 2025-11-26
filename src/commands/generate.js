@@ -1,19 +1,28 @@
+const log = require("../utils/logger");
 const { generateModel } = require("./model");
 
 function handleGenerate(args) {
   const [type, name, ...fields] = args;
 
   if (!type || !name) {
-    console.log("Usage: prismo g model <Name> field:type...");
+    log.warn("Usage: prismo g model <Name> field:type...");
     return;
   }
 
-  if (type === "model") {
-    generateModel(name, fields);
-    return;
-  }
+  switch (type.toLowerCase()) {
+    case "model":
+      return generateModel(name, fields);
 
-  console.log(`Unknown generate command: ${type}`);
+    case "field":
+      log.warn("Use: prismo g field <ModelName> field:type");
+      return;
+
+    default:
+      log.error(`Unknown generate command: "${type}"`);
+      log.info("Supported:");
+      log.info("  prismo g model <Name> field:type...");
+      return;
+  }
 }
 
 module.exports = { handleGenerate };

@@ -1,4 +1,5 @@
 const { execSync } = require("child_process");
+const log = require("../utils/logger");
 
 function migrateDB(name = "") {
   let migrationName = name;
@@ -10,11 +11,15 @@ function migrateDB(name = "") {
   }
 
   try {
-    console.log(`🔄 Running migration: ${migrationName}`);
+    log.title("Database Migration");
+    log.step(`Running migration: ${migrationName}`);
+
     execSync(`npx prisma migrate dev --name ${migrationName}`, { stdio: "inherit" });
-    console.log("✨ Migration complete!");
+
+    log.success("Migration complete! 🎉");
   } catch (error) {
-    console.error("❌ Migration failed!");
+    log.error("Migration failed!");
+    log.warn("Check your schema or previous migration history.");
   }
 }
 

@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
+const log = require("../utils/logger");
 
 const schemaPath = path.join(process.cwd(), "prisma", "schema.prisma");
 
@@ -20,7 +21,7 @@ function safeFormat() {
   try {
     execSync("npx prisma format", { stdio: "ignore" });
   } catch (err) {
-    console.log("⚠️ Prisma format failed");
+    log.warn("Prisma format failed");
   }
 }
 
@@ -52,14 +53,14 @@ function addFieldToModel(modelName, fields) {
   const formattedModelName = normalizeModelName(modelName);
 
   if (!fs.existsSync(schemaPath)) {
-    console.log("❌ prisma/schema.prisma not found!");
+    log.error("No prisma/schema.prisma found!");
     return;
   }
 
   let schema = fs.readFileSync(schemaPath, "utf8");
   let modelMatch = getModelBlock(schema, formattedModelName);
   if (!modelMatch) {
-    console.log(`❌ Model "${formattedModelName}" does not exist.`);
+    log.error(`Model "${formattedModelName}" does not exist.`);
     return;
   }
 
@@ -74,7 +75,7 @@ function addFieldToModel(modelName, fields) {
     const relatedModel = normalizeModelName(cleanName);
 
     if (modelBlock.includes(`${cleanName} `)) {
-      console.log(`⚠️ Field "${cleanName}" already exists in ${formattedModelName}`);
+      log.warn(`Field "${cleanName}" already exists in ${formattedModelName}`);
       return;
     }
 
@@ -94,7 +95,7 @@ function addFieldToModel(modelName, fields) {
     }
   });
 
-  if (updates.length === 0) return console.log("ℹ️ No fields added");
+  if (updates.length === 0) return log.info("No fields added");
 
   modelBlock = modelBlock.replace(/}$/, `${updates.join("\n")}\n}`);
   schema = schema.replace(modelMatch[0], modelBlock);
@@ -102,12 +103,12 @@ function addFieldToModel(modelName, fields) {
   fs.writeFileSync(schemaPath, schema);
   safeFormat();
 
-  console.log(`✨ Fields added to ${formattedModelName}`);
-  console.log(`📌 Run: prismo db:migrate "update_${formattedModelName.toLowerCase()}"`);
+  log.success(`Fields added to ${formattedModelName}`);
+  log.step(`Run: prismo db:migrate "update_${formattedModelName.toLowerCase()}"`);
 }
 
 /* ➕ Insert Reverse Relation Automatically */
-function addReverseRelation(schema, targetModel, originModel, single = false) {
+function addReverseRelation(schema, targetModel, originModel) {
   const reverseName = pluralize(originModel.toLowerCase());
   const reverseField = `  ${reverseName} ${originModel}[]`;
 
@@ -129,19 +130,19 @@ function removeFieldFromModel(modelName, fieldName) {
   const cleanFieldName = fieldName.trim();
 
   if (!fs.existsSync(schemaPath)) {
-    console.log("❌ prisma/schema.prisma not found!");
+    log.error("No prisma/schema.prisma found!");
     return;
   }
 
   let schema = fs.readFileSync(schemaPath, "utf8");
   let modelMatch = getModelBlock(schema, formattedModelName);
 
-  if (!modelMatch) return console.log(`❌ Model "${formattedModelName}" does not exist.`);
+  if (!modelMatch) return log.error(`Model "${formattedModelName}" does not exist.`);
 
   let modelBlock = modelMatch[0];
 
   if (!modelBlock.includes(`${cleanFieldName} `)) {
-    return console.log(`⚠️ Field "${cleanFieldName}" does not exist in ${formattedModelName}`);
+    return log.warn(`Field "${cleanFieldName}" does not exist in ${formattedModelName}`);
   }
 
   let lines = modelBlock.split("\n");
@@ -151,20 +152,16 @@ function removeFieldFromModel(modelName, fieldName) {
     line =>
       !line.includes(`${cleanFieldName}Id `) &&
       !line.includes(`${cleanFieldName} `) &&
-      // Keep id field
       !/^\s*\}$/.test(line)
   );
 
-  // Ensure closing brace exists once
-  if (!lines[lines.length - 1].trim().endsWith("}")) {
+  if (!lines[lines.length - 1].trim().endsWith("}"))
     lines.push("}");
-  }
 
   let cleanModelBlock = lines.join("\n");
-
   schema = schema.replace(modelMatch[0], cleanModelBlock);
 
-  // Remove reverse relation
+  // ➖ Remove reverse field
   const relatedModel = normalizeModelName(cleanFieldName);
   const reverseRelationName = pluralize(formattedModelName.toLowerCase());
 
@@ -172,7 +169,7 @@ function removeFieldFromModel(modelName, fieldName) {
   if (reverseMatch) {
     let reverseLines = reverseMatch[0].split("\n");
     reverseLines = reverseLines.filter(
-      line => !line.includes(`${reverseRelationName} `) && !/^\s*\}$/.test(line)
+      line => !line.includes(`${reverseRelationName} `) && !/^\s*\}$/g.test(line)
     );
     if (!reverseLines[reverseLines.length - 1].trim().endsWith("}"))
       reverseLines.push("}");
@@ -182,10 +179,9 @@ function removeFieldFromModel(modelName, fieldName) {
   fs.writeFileSync(schemaPath, schema);
   safeFormat();
 
-  console.log(`🗑️ Field "${cleanFieldName}" removed from ${formattedModelName}`);
-  console.log(`📌 Run: prismo db:migrate "update_${formattedModelName.toLowerCase()}"`);
+  log.success(`Field "${cleanFieldName}" removed from ${formattedModelName}`);
+  log.step(`Run: prismo db:migrate "update_${formattedModelName.toLowerCase()}"`);
 }
-
 
 module.exports = {
   addFieldToModel,
