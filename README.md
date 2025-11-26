@@ -43,6 +43,15 @@ npm install -g prismo-cli
 ```
 prismo --help
 ```
+```bash
+$ prismo --help
+Prismo CLI Commands:
+  prismo g model <Name> field:type...
+  prismo g field <Model> field:type...
+  prismo d model <Name>
+  prismo d field <Model> <FieldName>
+  prismo db:migrate <Migration Name>
+```
 # 🧱 Usage Examples 
 ## Generate a model
 ```sh
