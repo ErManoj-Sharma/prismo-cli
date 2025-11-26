@@ -1,17 +1,26 @@
 {
-  "name": "tools",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "name": "prismo-cli",
+  "version": "0.1.0",
+  "description": "A Prisma-based schema generator CLI (generate/destroy models, fields, migrations)",
+  "main": "src/index.js",
+  "type": "commonjs",
   "bin": {
     "prismo": "./bin/prismo.js"
   },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "keywords": [
+    "prisma",
+    "cli",
+    "database",
+    "generator",
+    "orm",
+    "model"
+  ],
+  "author": "Manoj Sharma",
+  "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.2"
   }
