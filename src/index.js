@@ -3,6 +3,9 @@ const { destroyModel } = require("./commands/destroy");
 const { migrateDB } = require("./commands/db");
 const { addFieldToModel } = require("./commands/field");
 const { removeFieldFromModel } = require("./commands/field");
+const { dropDB } = require("./commands/dbDrop");
+const { resetDB } = require("./commands/dbReset");
+const { listModels } = require("./commands/dbList");
 
 const args = process.argv.slice(2);
 const [cmd, type, name, ...rest] = args;
@@ -53,6 +56,17 @@ if (cmd === "db:migrate") {
   return migrateDB(type);
 }
 
+if (cmd === "db:drop") {
+  return dropDB();
+}
+
+if (cmd === "db:reset") {
+  return resetDB();
+}
+
+if (cmd === "list" && type === "models") {
+  return listModels();
+}
 console.log("Prismo CLI Commands:");
 console.log("  prismo g model <Name> field:type...");
 console.log("  prismo g field <Model> field:type...");

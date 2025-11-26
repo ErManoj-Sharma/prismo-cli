@@ -12,7 +12,6 @@
   "bin": {
     "prismo": "./bin/prismo.js"
   },
-  "type": "module",
   "dependencies": {
     "chalk": "^4.1.2"
   }
