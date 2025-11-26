@@ -13,15 +13,25 @@ function addModelToPrisma(name, fields) {
 
   if (!fs.existsSync(schemaPath)) {
     console.error("❌ No prisma/schema.prisma found in this project!");
-    return;
+    return false;
   }
 
+  const modelName = normalizeModelName(name);
+
+
   let schema = fs.readFileSync(schemaPath, "utf8");
+
+  // 🔒 Duplicate model prevention
+  const existsRegex = new RegExp(`model\\s+${modelName}\\b`, "i");
+  if (existsRegex.test(schema)) {
+    console.log(`❌ Model "${modelName}" already exists in schema.prisma`);
+    return false;
+  }
 
   const modelFields = generateFieldLines(fields);
 
   const modelBlock = `
-model ${name} {
+model ${modelName} {
   id        String   @id @default(uuid())
 ${modelFields}
   createdAt DateTime @default(now())
@@ -31,7 +41,8 @@ ${modelFields}
   schema += "\n" + modelBlock;
   fs.writeFileSync(schemaPath, schema);
 
-  console.log(`✨ Model ${name} added to schema.prisma`);
+  console.log(`✨ Model ${modelName} added to schema.prisma`);
+  return true;
 }
 
 function generateFieldLines(fields) {
@@ -40,16 +51,14 @@ function generateFieldLines(fields) {
 
   fields.forEach(f => {
     const [fieldName, type] = f.split(":");
-
     if (!type) return;
 
     if (type === "references" || type === "ref") {
-      const relatedModel = capitalize(fieldName);
+      const relatedModel = capitalize(fieldName.toLowerCase());
 
-      // Main relation field
+      // 🏗 Main relation field
       normalFields.push(`  ${fieldName} ${relatedModel} @relation(fields: [${fieldName}Id], references: [id])`);
-      
-      // Foreign key field
+      // 🔑 Foreign key
       relationFields.push(`  ${fieldName}Id String`);
     } else {
       normalFields.push(`  ${fieldName} ${mapType(type)}`);
@@ -76,8 +85,12 @@ function mapType(type) {
   return mapping[type.toLowerCase()] || type;
 }
 
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+function normalizeModelName(name) {
+  return name
+    .split(/[_\s]+/)               // split by underscores or spaces
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join("");                     // join together PascalCase
 }
+
 
 module.exports = { addModelToPrisma };
