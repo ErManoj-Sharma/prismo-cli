@@ -48,7 +48,7 @@ prismo --help
 ```sh
 prismo g model Post title:String age:Int
 ```
-## Result
+### Result
 ```
 📌 Creating Model
 ✔ Schema formatted
@@ -66,7 +66,7 @@ model Post {
 ```sh       
 prismo g field Post comments:references
 ```
-## Result
+### Result
 ```📌 Adding Field
 ✔ Schema formatted
 ✔ Fields added to Post
@@ -84,7 +84,7 @@ model Post {
 ```
 prismo d model Post
 ```
-## Result
+### Result
 ```
 ✔ Model "Post" removed successfully!
 → Run migration: prismo db:migrate "remove_post"
@@ -100,7 +100,7 @@ prismo d model Post
 ```
 prismo list models
 ```
-## Result
+### Result
 ```
 📌 Database Models
 
