@@ -6,9 +6,16 @@ const { removeFieldFromModel } = require("./commands/field");
 const { dropDB } = require("./commands/dbDrop");
 const { resetDB } = require("./commands/dbReset");
 const { listModels } = require("./commands/dbList");
+const { studio } = require('./commands/studio');
+const { seedDB } = require("./commands/dbSeed");
+const showHelp = require("./utils/help");
 
 const args = process.argv.slice(2);
 const [cmd, type, name, ...rest] = args;
+if (cmd === "--help" || cmd === "help" || cmd === "-h") {
+  return showHelp();
+}
+
 
 if (cmd === "g" || cmd === "generate") {
   // prismo g model Post title:String
@@ -26,7 +33,7 @@ if (cmd === "g" || cmd === "generate") {
   }
 
   console.log("Usage: prismo g model <Name> field:type...");
-  console.log("       prismo g field <Model> field:type...");
+  console.log("prismo g field <Model> field:type...");
   return;
 }
 
@@ -64,12 +71,22 @@ if (cmd === "db:reset") {
   return resetDB();
 }
 
+if (cmd === "db:seed") {
+  return seedDB();
+}
+
 if (cmd === "list" && type === "models") {
   return listModels();
 }
+if (cmd === "studio" || cmd === "ui") {
+  return studio();
+}
+
 console.log("Prismo CLI Commands:");
 console.log("  prismo g model <Name> field:type...");
 console.log("  prismo g field <Model> field:type...");
 console.log("  prismo d model <Name>");
 console.log("  prismo d field <Model> <FieldName>");
 console.log("  prismo db:migrate <Migration Name>");
+console.log("  prismo studio");
+console.log("  prismo db:seed");

@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "type": "commonjs",
   "bin": {
-    "prismo": "./bin/prismo.js"
+    "prismo": "./bin/prismo.js",
+    "prsm": "./bin/prismo.js"
   },
   "files": [
     "bin",
