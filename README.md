@@ -53,12 +53,39 @@ prismo --help
 ```
 ```bash
 $ prismo --help
-Prismo CLI Commands:
-  prismo g model <Name> field:type...
-  prismo g field <Model> field:type...
-  prismo d model <Name>
-  prismo d field <Model> <FieldName>
-  prismo db:migrate <Migration Name>
+┌────────────────────────────────────────────────────────────┐
+│                     Prismo CLI Help                         
+└────────────────────────────────────────────────────────────┘
+Usage:
+  prismo <command> [options]
+
+Commands:
+  Generate
+  prismo g model <ModelName> <field:type>...       Create a new model
+  prismo g field <ModelName> <field:type>...       Add fields to a model
+
+  Destroy
+  prismo d model <ModelName>                       Remove a model
+  prismo d field <ModelName> <Field>               Remove a field
+
+  Database
+  prismo db:migrate <name>                         Create & apply migration
+  prismo db:reset                                  Reset DB & reapply migrations
+  prismo db:drop                                   Drop database
+  prismo db:seed                                   Run Prisma seed script
+  prismo list models                               List all models in schema
+  prismo studio                                    Launch Prisma Studio UI
+
+Options:
+  -h, --help                                       Show help
+  -v, --version                                    Show version
+
+Examples:
+  prismo g model User name:string email:string
+  prismo g field Post title:string
+  prismo d model Order
+  prismo db:migrate "add_users_table"
+  prismo studio
 ```
 # 🧱 Usage Examples 
 ## Generate a model
