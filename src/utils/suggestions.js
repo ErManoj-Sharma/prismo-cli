@@ -1,15 +1,23 @@
 const chalk = require("chalk");
 
-// Valid commands & subcommands
-const validCommands = [
+// 🔹 Valid root-level CLI commands
+const validRootCommands = [
     "g", "generate",
     "d", "destroy",
+    "r", "rel", "relation",
     "db:migrate", "db:drop", "db:reset", "db:seed",
     "studio", "ui",
-    "list"
+    "list", "help",
 ];
 
-// Levenshtein Distance for accuracy scoring
+// 🔹 Valid generate subcommands
+const validSubCommands = [
+    "model",
+    "field",
+    "relation"
+];
+
+// Levenshtein Distance Algorithm
 function levenshtein(a, b) {
     const matrix = Array.from({ length: a.length + 1 }, (_, i) =>
         Array.from({ length: b.length + 1 }, (_, j) =>
@@ -30,7 +38,7 @@ function levenshtein(a, b) {
     return matrix[a.length][b.length];
 }
 
-// Find closest match
+// Suggest best alternative based on similarity
 function getSuggestion(input, list) {
     let bestMatch = null;
     let bestScore = Infinity;
@@ -46,38 +54,49 @@ function getSuggestion(input, list) {
     return bestScore <= 3 ? bestMatch : null;
 }
 
+/* ======================================
+   Primary Suggestion Handler (Root)
+====================================== */
 function handleSuggestions(rawArgs) {
     const inputCmd = rawArgs[0];
+    if (!inputCmd) return;
 
-    if (!inputCmd || ["--help", "-h"].includes(inputCmd)) return;
+    if (["--help", "-h"].includes(inputCmd)) return; // Help handled separately
 
-    if (!validCommands.includes(inputCmd)) {
-        const suggestion = getSuggestion(inputCmd, validCommands);
+    if (!validRootCommands.includes(inputCmd)) {
+        const suggestion = getSuggestion(inputCmd, validRootCommands);
 
-        console.log(`\n❌ Unknown command: "${inputCmd}"`);
+        console.log(chalk.red(`\n✖ Unknown command: "${inputCmd}"`));
         if (suggestion) {
             console.log(`🤔 Did you mean: ${chalk.green(`prismo ${suggestion}`)} ?`);
         }
-        console.log(`\nUse ${chalk.green("prismo --help")} to see available commands.\n`);
+        console.log(`\nRun ${chalk.cyan("prismo --help")} to see available commands.\n`);
+
         process.exit(1);
     }
 }
+
+/* ======================================
+   Subcommand Suggestion Handler
+====================================== */
 function handleSubcommandSuggestions(type) {
-    const validSubCommands = ["model", "field"];
+    if (!type) return;
 
     if (!validSubCommands.includes(type)) {
         const suggestion = getSuggestion(type, validSubCommands);
 
-        console.log(`\n❌ Unknown generate type: "${type}"`);
+        console.log(chalk.red(`\n✖ Unknown subcommand type: "${type}"`));
         if (suggestion) {
             console.log(`🤔 Did you mean: ${chalk.green(suggestion)} ?`);
         }
-        console.log(`\nUse ${chalk.green("prismo --help")} for correct usage.\n`);
+        console.log(`\nValid subcommands: ${chalk.yellow(validSubCommands.join(", "))}`);
+        console.log(`Run ${chalk.cyan("prismo --help")} for usage examples.\n`);
+
         process.exit(1);
     }
 }
 
-
-
-
-module.exports = { handleSuggestions, handleSubcommandSuggestions };
+module.exports = {
+    handleSuggestions,
+    handleSubcommandSuggestions,
+};
