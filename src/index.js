@@ -15,6 +15,9 @@ const { resetDB } = require("./commands/dbReset");
 const { listModels } = require("./commands/dbList");
 const { studio } = require("./commands/studio");
 const { seedDB } = require("./commands/dbSeed");
+const { handleSuggestions, handleSubcommandSuggestions } = require("./utils/suggestions");
+
+
 
 // Disable Commander default help so only custom help appears
 program.helpOption(false);
@@ -47,6 +50,7 @@ program
   .option("--migration", "Alias for migrate")
   .action((type, name, fields, opts) => {
     const shouldMigrate = opts.migrate || opts.migration;
+    handleSubcommandSuggestions(type);
 
     if (type === "model") {
       handleGenerate(["model", name, ...fields]);
@@ -88,6 +92,8 @@ program
   .option("--migration", "Alias for migrate")
   .action((type, name, field, opts) => {
     const shouldMigrate = opts.migrate || opts.migration;
+    handleSubcommandSuggestions(type);
+
 
     if (type === "model") {
       destroyModel(name);
@@ -137,6 +143,8 @@ program.command("studio").alias("ui").action(studio);
 // Custom Help Override
 // ---------------------
 const rawArgs = process.argv.slice(2);
+// 1️⃣ Suggestions check BEFORE help
+handleSuggestions(rawArgs);
 
 // Show help BEFORE Commander parses unknown flags
 if (
