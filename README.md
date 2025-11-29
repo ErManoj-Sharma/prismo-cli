@@ -200,3 +200,4 @@ Follow the project ⭐ and contribute!
 MIT License — Free for commercial & personal usage.
 
 ### 📢 If this tool saves you time, please star ⭐ the repo — it really helps!
+```

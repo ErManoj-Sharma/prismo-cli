@@ -1,44 +1,63 @@
 const chalk = require("chalk");
+const getPrismoVersion = require("./version");
 
 function showHelp() {
-    console.log(chalk.magentaBright.bold(`
+  const title = chalk.magentaBright.bold(`
 ┌────────────────────────────────────────────────────────────┐
-│                     Prismo CLI Help                        │
-└────────────────────────────────────────────────────────────┘
-`));
+│                      Prismo CLI Help 🛠️                     │
+└────────────────────────────────────────────────────────────┘`);
 
-    console.log(chalk.whiteBright(`
-Usage:
+  const header = `
+${chalk.cyanBright("Prisma Schema Power Tools 🚀")}
+Version: ${chalk.white(getPrismoVersion())}
+`;
+
+  const usage = chalk.whiteBright(`
+${chalk.bold("Usage:")}
   prismo <command> [options]
+`);
 
-Commands:
-  ${chalk.cyan("Generate")}
-  prismo g model <ModelName> <field:type>...       Create a new model
-  prismo g field <ModelName> <field:type>...       Add fields to a model
+  const commands = chalk.whiteBright(`
+${chalk.bold("Commands:")}
 
-  ${chalk.cyan("Destroy")}
-  prismo d model <ModelName>                       Remove a model
-  prismo d field <ModelName> <Field>               Remove a field
+  ${chalk.green("g")} | ${chalk.green("generate")}        Create models / fields
+      prismo g model <Name> <field:type>...
+      prismo g field <Model> <field:type>...
 
-  ${chalk.cyan("Database")}
-  prismo db:migrate <name>                         Create & apply migration
-  prismo db:reset                                  Reset DB & reapply migrations
-  prismo db:drop                                   Drop database
-  prismo db:seed                                   Run Prisma seed script
-  prismo list models                               List all models in schema
-  prismo studio                                    Launch Prisma Studio UI
+  ${chalk.green("d")} | ${chalk.green("destroy")}         Remove models / fields
+      prismo d model <Name>
+      prismo d field <Model> <Field>
 
-Options:
-  -h, --help                                       Show help
-  -v, --version                                    Show version
+  ${chalk.green("db:migrate")} <name>   Create & apply a migration
+  ${chalk.green("db:reset")}            Reset DB & reapply migrations
+  ${chalk.green("db:drop")}             Drop the DB (fully)
+  ${chalk.green("db:seed")}             Execute Prisma seed script
 
-Examples:
-  prismo g model User name:string email:string
-  prismo g field Post title:string
-  prismo d model Order
-  prismo db:migrate "add_users_table"
+  ${chalk.green("list models")}         Display all available models
+  ${chalk.green("studio")} | ${chalk.green("ui")}        Launch Prisma Studio UI
+`);
+
+  const options = chalk.whiteBright(`
+${chalk.bold("Options:")}
+  -m, --migrate        Auto-run migration after changes
+  -v, --version        Show CLI version
+  -h, --help           Show this help menu
+`);
+
+  const examples = chalk.whiteBright(`
+${chalk.bold("Examples:")}
+  prismo g model User name:string email:string --migrate
+  prismo g field Post likes:int
+  prismo d model Comment
+  prismo db:migrate "init_users"
   prismo studio
-`));
+`);
+
+  const footer = chalk.cyanBright(`
+✨ Tip: Use short aliases to save time! Happy Coding! ✨
+`);
+
+  console.log(title + header + usage + commands + options + examples + footer);
 }
 
 module.exports = showHelp;

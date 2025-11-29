@@ -1,92 +1,153 @@
+#!/usr/bin/env node
+const { Command } = require("commander");
+const chalk = require("chalk");
+const program = new Command();
+
+const showHelp = require("./utils/help");
+const getPrismoVersion = require("./utils/version");
+
 const { handleGenerate } = require("./commands/generate");
 const { destroyModel } = require("./commands/destroy");
 const { migrateDB } = require("./commands/db");
-const { addFieldToModel } = require("./commands/field");
-const { removeFieldFromModel } = require("./commands/field");
+const { addFieldToModel, removeFieldFromModel } = require("./commands/field");
 const { dropDB } = require("./commands/dbDrop");
 const { resetDB } = require("./commands/dbReset");
 const { listModels } = require("./commands/dbList");
-const { studio } = require('./commands/studio');
+const { studio } = require("./commands/studio");
 const { seedDB } = require("./commands/dbSeed");
-const showHelp = require("./utils/help");
 
-const args = process.argv.slice(2);
-const [cmd, type, name, ...rest] = args;
-if (cmd === "--help" || cmd === "help" || cmd === "-h") {
-  return showHelp();
+// Disable Commander default help so only custom help appears
+program.helpOption(false);
+program.addHelpCommand(false);
+
+// Metadata
+program
+  .name("prismo")
+  .description("Prisma Schema Power Tools 🚀")
+  .version(getPrismoVersion(), "-v, --version", "Show version");
+
+// Helper: Migration reminder
+function notifyMigration(message) {
+  console.log(`\n⚠️  ${message}`);
+  console.log(
+    `   Run ${chalk.green("prismo db:migrate <name>")} or use ${chalk.green("-m")} flag next time.\n`
+  );
 }
 
+// -------------------
+// Generate Commands
+// -------------------
+program
+  .command("g")
+  .alias("generate")
+  .argument("<type>", "model | field")
+  .argument("<name>", "Model or field name")
+  .argument("[fields...]", "field:type format")
+  .option("-m, --migrate", "Run migration after generation")
+  .option("--migration", "Alias for migrate")
+  .action((type, name, fields, opts) => {
+    const shouldMigrate = opts.migrate || opts.migration;
 
-if (cmd === "g" || cmd === "generate") {
-  // prismo g model Post title:String
-  if (type === "model") {
-    return handleGenerate([type, name, ...rest]);
-  }
+    if (type === "model") {
+      handleGenerate(["model", name, ...fields]);
 
-  // prismo g field Article title:String
-  if (type === "field") {
-    if (!name || rest.length === 0) {
-      console.log("Usage: prismo g field <Model> <field:type> <field:type>...");
+      if (shouldMigrate) {
+        migrateDB(`add_${name.toLowerCase()}`);
+      } else {
+        notifyMigration(`Model "${name}" created but migration not executed.`);
+      }
+
       return;
     }
-    return addFieldToModel(name, rest);
-  }
 
-  console.log("Usage: prismo g model <Name> field:type...");
-  console.log("prismo g field <Model> field:type...");
-  return;
-}
+    if (type === "field") {
+      addFieldToModel(name, fields);
 
-if (cmd === "d" || cmd === "destroy") {
+      if (shouldMigrate) {
+        migrateDB(`update_${name.toLowerCase()}`);
+      } else {
+        notifyMigration(`Fields updated in "${name}" but migration not executed.`);
+      }
 
-  if (type === "model") {
-    if (!name) return console.log("Usage: prismo d model <Name>");
-    return destroyModel(name);
-  }
-
-  if (type === "field") {
-    const [model, field] = [name, ...rest];
-    if (!model || !field) {
-      console.log("Usage: prismo d field <Model> <FieldName>");
       return;
     }
-    return removeFieldFromModel(model, field);
-  }
 
-  console.log("Usage: prismo d model <Name>");
-  console.log("Usage: prismo d field <Model> <FieldName>");
-  return;
+    console.log("Unknown generate type!");
+  });
+
+// -------------------
+// Destroy Commands
+// -------------------
+program
+  .command("d")
+  .alias("destroy")
+  .argument("<type>", "model | field")
+  .argument("<name>", "Model")
+  .argument("[field]", "Field")
+  .option("-m, --migrate", "Run migration after deletion")
+  .option("--migration", "Alias for migrate")
+  .action((type, name, field, opts) => {
+    const shouldMigrate = opts.migrate || opts.migration;
+
+    if (type === "model") {
+      destroyModel(name);
+
+      if (shouldMigrate) {
+        migrateDB(`remove_${name.toLowerCase()}`);
+      } else {
+        notifyMigration(`Model "${name}" removed but migration not executed.`);
+      }
+
+      return;
+    }
+
+    if (type === "field") {
+      removeFieldFromModel(name, field);
+
+      if (shouldMigrate) {
+        migrateDB(`update_${name.toLowerCase()}`);
+      } else {
+        notifyMigration(`Field "${field}" removed but migration not executed.`);
+      }
+
+      return;
+    }
+
+    console.log("Unknown destroy type");
+  });
+
+// -------------------
+// DB Commands
+// -------------------
+program.command("db:migrate")
+  .argument("[name]", "Migration name")
+  .action(migrateDB);
+
+program.command("db:drop").action(dropDB);
+program.command("db:reset").action(resetDB);
+program.command("db:seed").action(seedDB);
+
+// -------------------
+// Studio + List
+// -------------------
+program.command("list models").action(listModels);
+program.command("studio").alias("ui").action(studio);
+
+// ---------------------
+// Custom Help Override
+// ---------------------
+const rawArgs = process.argv.slice(2);
+
+// Show help BEFORE Commander parses unknown flags
+if (
+  rawArgs.length === 0 ||
+  rawArgs.includes("--help") ||
+  rawArgs.includes("-h") ||
+  rawArgs[0] === "help"
+) {
+  showHelp();
+  process.exit(0);
 }
 
-
-if (cmd === "db:migrate") {
-  return migrateDB(type);
-}
-
-if (cmd === "db:drop") {
-  return dropDB();
-}
-
-if (cmd === "db:reset") {
-  return resetDB();
-}
-
-if (cmd === "db:seed") {
-  return seedDB();
-}
-
-if (cmd === "list" && type === "models") {
-  return listModels();
-}
-if (cmd === "studio" || cmd === "ui") {
-  return studio();
-}
-
-console.log("Prismo CLI Commands:");
-console.log("  prismo g model <Name> field:type...");
-console.log("  prismo g field <Model> field:type...");
-console.log("  prismo d model <Name>");
-console.log("  prismo d field <Model> <FieldName>");
-console.log("  prismo db:migrate <Migration Name>");
-console.log("  prismo studio");
-console.log("  prismo db:seed");
+// Parse everything else
+program.parse(process.argv);
